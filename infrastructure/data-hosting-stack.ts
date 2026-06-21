@@ -22,10 +22,14 @@ export class DataHostingStack extends NenaBaseStack {
         });
 
         if (props.readerAccountIds && props.readerAccountIds.length > 0) {
+            const readerPrincipals = props.readerAccountIds.map(
+                readerAccountId => new iam.AccountPrincipal(readerAccountId),
+            );
+
             this.bucket.addToResourcePolicy(new iam.PolicyStatement({
                 sid: 'DelegateToAccessPoints',
                 effect: iam.Effect.ALLOW,
-                principals: [new iam.AnyPrincipal()],
+                principals: readerPrincipals,
                 actions: ['s3:GetObject', 's3:ListBucket'],
                 resources: [this.bucket.bucketArn, `${this.bucket.bucketArn}/*`],
                 conditions: {
@@ -35,7 +39,7 @@ export class DataHostingStack extends NenaBaseStack {
 
             const accessPointName = `rges-pit-${props.dataName}`;
             const accessPointArn = `arn:aws:s3:${this.region}:${this.account}:accesspoint/${accessPointName}`;
-            const readerPrincipals = props.readerAccountIds.map(
+            const readerPrincipalStrings = props.readerAccountIds.map(
                 readerAccountId => `arn:aws:iam::${readerAccountId}:root`,
             );
 
@@ -54,7 +58,7 @@ export class DataHostingStack extends NenaBaseStack {
                         {
                             Sid: 'AllowReaderAccountsRead',
                             Effect: 'Allow',
-                            Principal: {AWS: readerPrincipals},
+                            Principal: {AWS: readerPrincipalStrings},
                             Action: ['s3:GetObject', 's3:ListBucket'],
                             Resource: [
                                 accessPointArn,
