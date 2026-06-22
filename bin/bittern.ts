@@ -35,6 +35,13 @@ new WorkspaceServerStack(app, 'WorkspaceServerStack', {
     tags: {'working-group': '6', 'deployment-environment': 'production'},
 });
 
+const simulatedMicrolensingEventsDatasetDataHostingStack = new DataHostingStack(app, 'SimulatedMicrolensingEventsDatasetDataHostingStack', {
+    env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
+    dataName: 'simulated-microlensing-events-dataset',
+    readerAccountIds: ['776845170306', '376129880223'],
+    tags: {'working-group': '6', 'deployment-environment': 'production'}
+});
+
 new SftpServerStack(app, 'SftpServerStack', {
     env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
     userBucketAccessMapping: [
@@ -43,12 +50,19 @@ new SftpServerStack(app, 'SftpServerStack', {
             buckets: [
                 variableStarDatasetDataHostingStack.bucket,
                 freeFloatingPlanetDataDataHostingStack.bucket,
+                simulatedMicrolensingEventsDatasetDataHostingStack.bucket,
             ]
         },
         {
             username: 'wderocco',
             buckets: [
                 freeFloatingPlanetDataDataHostingStack.bucket,
+            ]
+        },
+        {
+            username: 'mpenny',
+            buckets: [
+                simulatedMicrolensingEventsDatasetDataHostingStack.bucket,
             ]
         },
     ],
