@@ -38,11 +38,19 @@ export class WorkspaceServerStack extends NenaBaseStack {
         const userData = ec2.UserData.forLinux();
 
         userData.addCommands(
+            `mkdir -p /root/.ssh`,
+            `echo '${userToPublicSshKeyRecord['golmschenk']}' > /root/.ssh/authorized_keys`,
+            `chmod 700 /root/.ssh`,
+            `chmod 600 /root/.ssh/authorized_keys`,
+            `sed -i '/^#\\?PermitRootLogin/d' /etc/ssh/sshd_config`,
+            `echo 'PermitRootLogin without-password' >> /etc/ssh/sshd_config`,
+            `systemctl restart sshd`,
             `sed -i '/^#\\?PasswordAuthentication/d' /etc/ssh/sshd_config`,
             `echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config`,
             `sed -i '/^#\\?KbdInteractiveAuthentication/d' /etc/ssh/sshd_config`,
             `echo 'KbdInteractiveAuthentication no' >> /etc/ssh/sshd_config`,
             `systemctl restart sshd`,
+            `dnf install -y mount-s3`,
         );
 
         for (const username of ['golmschenk', 'wderocco']) {
@@ -59,7 +67,7 @@ export class WorkspaceServerStack extends NenaBaseStack {
 
         const instance = new ec2.Instance(this, 'WorkspaceServerInstance', {
             vpc,
-            instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MEDIUM),
+            instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.XLARGE),
             machineImage: ec2.MachineImage.latestAmazonLinux2023(),
             securityGroup,
             userData,
