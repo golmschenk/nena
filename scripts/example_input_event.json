@@ -1,6 +1,6 @@
 [
   {
-    "Source": "com.olmschenk.bittern",
+    "Source": "com.olmschenk.nena",
     "DetailType": "input_event",
     "Detail": "{ \"input_file\": \"example0.csv\" }"
   }

@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/bittern.ts",
+  "app": "npx ts-node --prefer-ts-exts bin/nena.ts",
   "watch": {
     "include": [
       "**"

@@ -1,8 +1,8 @@
 {
-  "name": "bittern",
+  "name": "nena",
   "version": "0.1.0",
   "bin": {
-    "bittern": "bin/bittern.js"
+    "nena": "bin/nena.js"
   },
   "scripts": {
     "build": "tsc",
