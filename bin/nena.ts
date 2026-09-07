@@ -40,7 +40,7 @@ const simulatedMicrolensingEventsDatasetDataHostingStack = new DataHostingStack(
     env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
     dataName: 'simulated-microlensing-events-dataset',
     readerAccountIds: ['776845170306', '376129880223'],
-    tags: {'working-group': '6', 'deployment-environment': 'production'}
+    tags: {'working-group': '7', 'deployment-environment': 'production'}
 });
 
 new SftpServerStack(app, 'SftpServerStack', {
