@@ -26,13 +26,14 @@ const variableStarDatasetDataHostingStack = new DataHostingStack(app, 'VariableS
 const freeFloatingPlanetDataDataHostingStack = new DataHostingStack(app, 'FreeFloatingPlanetDataDataHostingStack', {
     env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
     dataName: 'free-floating-planet-data',
-    tags: {'working-group': '6', 'deployment-environment': 'production'}
+    readerAccountIds: ['776845170306', '376129880223', '924136568137', '257667174570'],
+    tags: {'working-group': '11', 'deployment-environment': 'production'}
 });
 
 new WorkspaceServerStack(app, 'WorkspaceServerStack', {
     env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
     bucket: freeFloatingPlanetDataDataHostingStack.bucket,
-    tags: {'working-group': '6', 'deployment-environment': 'production'},
+    tags: {'working-group': '11', 'deployment-environment': 'production'},
 });
 
 const simulatedMicrolensingEventsDatasetDataHostingStack = new DataHostingStack(app, 'SimulatedMicrolensingEventsDatasetDataHostingStack', {
