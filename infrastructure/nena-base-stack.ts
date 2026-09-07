@@ -3,7 +3,7 @@ import {Construct} from 'constructs';
 import {StackProps} from "aws-cdk-lib";
 
 export type NenaBaseStackProps = StackProps & {
-    tags: { 'deployment-environment': string, 'working-group': string } & { [key: string]: string };
+    tags: { 'working-group': string } & { [key: string]: string };
 };
 
 export class NenaBaseStack extends cdk.Stack {

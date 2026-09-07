@@ -20,27 +20,27 @@ const variableStarDatasetDataHostingStack = new DataHostingStack(app, 'VariableS
     env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
     dataName: 'variable-star-dataset',
     readerAccountIds: ['776845170306', '376129880223', '924136568137', '257667174570'],
-    tags: {'working-group': '6', 'deployment-environment': 'production'}
+    tags: {'working-group': '6'}
 });
 
 const freeFloatingPlanetDataDataHostingStack = new DataHostingStack(app, 'FreeFloatingPlanetDataDataHostingStack', {
     env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
     dataName: 'free-floating-planet-data',
     readerAccountIds: ['776845170306', '376129880223', '924136568137', '257667174570'],
-    tags: {'working-group': '11', 'deployment-environment': 'production'}
+    tags: {'working-group': '11'}
 });
 
 new WorkspaceServerStack(app, 'WorkspaceServerStack', {
     env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
     bucket: freeFloatingPlanetDataDataHostingStack.bucket,
-    tags: {'working-group': '11', 'deployment-environment': 'production'},
+    tags: {'working-group': '11'},
 });
 
 const simulatedMicrolensingEventsDatasetDataHostingStack = new DataHostingStack(app, 'SimulatedMicrolensingEventsDatasetDataHostingStack', {
     env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
     dataName: 'simulated-microlensing-events-dataset',
     readerAccountIds: ['776845170306', '376129880223'],
-    tags: {'working-group': '7', 'deployment-environment': 'production'}
+    tags: {'working-group': '7'}
 });
 
 new SftpServerStack(app, 'SftpServerStack', {
@@ -67,5 +67,5 @@ new SftpServerStack(app, 'SftpServerStack', {
             ]
         },
     ],
-    tags: {'working-group': '14', 'deployment-environment': 'production'},
+    tags: {'working-group': '14'},
 });
