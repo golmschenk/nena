@@ -62,7 +62,7 @@ export class SftpServerStack extends NenaBaseStack {
         const databaseName = 'sftp_server';
         const databaseCluster = new rds.DatabaseCluster(this, 'SftpServerStackDatabase', {
             engine: rds.DatabaseClusterEngine.auroraPostgres({
-                version: rds.AuroraPostgresEngineVersion.VER_16_4,
+                version: rds.AuroraPostgresEngineVersion.VER_17_9,
             }),
             defaultDatabaseName: databaseName,
             credentials: rds.Credentials.fromGeneratedSecret('sftpgo', {
@@ -137,6 +137,7 @@ export class SftpServerStack extends NenaBaseStack {
                 SFTPGO_DATA_PROVIDER__NAME: databaseName,
                 SFTPGO_DATA_PROVIDER__HOST: databaseCluster.clusterEndpoint.hostname,
                 SFTPGO_DATA_PROVIDER__PORT: databaseCluster.clusterEndpoint.port.toString(),
+                SFTPGO_DATA_PROVIDER__SSLMODE: '1',
                 SFTPGO_LOADDATA_FROM: '/tmp/sftpgo-loaddata.json',
                 SFTPGO_LOADDATA_MODE: '0',
             },
@@ -170,6 +171,7 @@ export class SftpServerStack extends NenaBaseStack {
             taskDefinition,
             desiredCount: 1,
             minHealthyPercent: 100,
+            circuitBreaker: {rollback: true},
             assignPublicIp: true,
             vpcSubnets: {subnetType: ec2.SubnetType.PUBLIC},
             securityGroups: [fargateSecurityGroup],
@@ -209,14 +211,13 @@ export class SftpServerStack extends NenaBaseStack {
             },
         });
 
-        fargateSecurityGroup.addIngressRule(
-            ec2.Peer.anyIpv4(),
-            ec2.Port.tcp(2022),
-            'SftpServerStackInboundSftpTrafficRule',
-        );
-
         networkLoadBalancer.connections.allowTo(
             fargateService, ec2.Port.tcp(2022), 'NLB to Fargate health check and traffic');
-        networkLoadBalancer.connections.allowFromAnyIpv4(ec2.Port.tcp(22), 'Allow inbound SFTP traffic');
+        networkLoadBalancer.connections.allowFromAnyIpv4(
+            ec2.Port.tcp(22), 'SftpServerStackInboundSftpTrafficRule');
+        cdk.Annotations.of(networkLoadBalancer).acknowledgeWarning(
+            'CloudFormation-Validate::W2508',
+            'Public SFTP access on port 22 is intentional.',
+        );
     }
 }
