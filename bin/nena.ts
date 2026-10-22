@@ -66,6 +66,12 @@ new SftpServerStack(app, 'SftpServerStack', {
                 simulatedMicrolensingEventsDatasetDataHostingStack.bucket,
             ]
         },
+        {
+            username: 'alexanderpstephan',
+            buckets: [
+                variableStarDatasetDataHostingStack.bucket,
+            ]
+        },
     ],
     tags: {'working-group': '14'},
 });
