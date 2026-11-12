@@ -43,6 +43,14 @@ const simulatedMicrolensingEventsDatasetDataHostingStack = new DataHostingStack(
     tags: {'working-group': '7'}
 });
 
+const msosLiaisonDataHostingStack = new DataHostingStack(app, 'MsosLiaisonDataHostingStack', {
+    env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
+    dataName: 'msos-liaison',
+    readerAccountIds: ['776845170306', '376129880223', '924136568137', '257667174570'],
+    fullAccessAccountIds: ['102797805514', '765894972596'],
+    tags: {'working-group': '14'}
+});
+
 new SftpServerStack(app, 'SftpServerStack', {
     env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
     userBucketAccessMapping: [

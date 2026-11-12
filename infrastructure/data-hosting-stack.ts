@@ -7,6 +7,7 @@ import {NenaBaseStack, NenaBaseStackProps} from './nena-base-stack';
 interface DataHostingStackProps extends NenaBaseStackProps {
     dataName: string;
     readerAccountIds?: string[];
+    fullAccessAccountIds?: string[];
 }
 
 export class DataHostingStack extends NenaBaseStack {
@@ -21,27 +22,50 @@ export class DataHostingStack extends NenaBaseStack {
             blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
         });
 
-        if (props.readerAccountIds && props.readerAccountIds.length > 0) {
-            const readerPrincipals = props.readerAccountIds.map(
-                readerAccountId => new iam.AccountPrincipal(readerAccountId),
-            );
-
-            this.bucket.addToResourcePolicy(new iam.PolicyStatement({
-                sid: 'DelegateToAccessPoints',
-                effect: iam.Effect.ALLOW,
-                principals: readerPrincipals,
+        const accessGroups = [
+            {
+                accountIds: [...new Set(props.readerAccountIds ?? [])],
+                bucketSid: 'DelegateToAccessPoints',
+                accessPointSid: 'AllowReaderAccountsRead',
                 actions: ['s3:GetObject', 's3:ListBucket'],
-                resources: [this.bucket.bucketArn, `${this.bucket.bucketArn}/*`],
-                conditions: {
-                    StringEquals: {'s3:DataAccessPointAccount': this.account},
-                },
-            }));
+            },
+            {
+                accountIds: [...new Set(props.fullAccessAccountIds ?? [])],
+                bucketSid: 'DelegateFullAccessToAccessPoints',
+                accessPointSid: 'AllowFullAccessAccountsReadWrite',
+                actions: [
+                    's3:GetObject*',
+                    's3:ListBucket',
+                    's3:ListBucketVersions',
+                    's3:ListBucketMultipartUploads',
+                    's3:ListMultipartUploadParts',
+                    's3:PutObject',
+                    's3:PutObjectLegalHold',
+                    's3:PutObjectRetention',
+                    's3:PutObjectTagging',
+                    's3:PutObjectVersionTagging',
+                    's3:DeleteObject*',
+                    's3:AbortMultipartUpload',
+                ],
+            },
+        ].filter(group => group.accountIds.length > 0);
+
+        if (accessGroups.length > 0) {
+            for (const group of accessGroups) {
+                this.bucket.addToResourcePolicy(new iam.PolicyStatement({
+                    sid: group.bucketSid,
+                    effect: iam.Effect.ALLOW,
+                    principals: group.accountIds.map(accountId => new iam.AccountPrincipal(accountId)),
+                    actions: group.actions,
+                    resources: [this.bucket.bucketArn, `${this.bucket.bucketArn}/*`],
+                    conditions: {
+                        StringEquals: {'s3:DataAccessPointAccount': this.account},
+                    },
+                }));
+            }
 
             const accessPointName = `rges-pit-${props.dataName}`;
             const accessPointArn = `arn:aws:s3:${this.region}:${this.account}:accesspoint/${accessPointName}`;
-            const readerPrincipalStrings = props.readerAccountIds.map(
-                readerAccountId => `arn:aws:iam::${readerAccountId}:root`,
-            );
 
             this.accessPoint = new s3.CfnAccessPoint(this, `${changeCase.pascalCase(props.dataName)}AccessPoint`, {
                 bucket: this.bucket.bucketName,
@@ -54,23 +78,21 @@ export class DataHostingStack extends NenaBaseStack {
                 },
                 policy: {
                     Version: '2012-10-17',
-                    Statement: [
-                        {
-                            Sid: 'AllowReaderAccountsRead',
-                            Effect: 'Allow',
-                            Principal: {AWS: readerPrincipalStrings},
-                            Action: ['s3:GetObject', 's3:ListBucket'],
-                            Resource: [
-                                accessPointArn,
-                                `${accessPointArn}/object/*`,
-                            ],
-                            Condition: {
-                                StringEquals: {
-                                    'aws:RequestedRegion': this.region,
-                                },
+                    Statement: accessGroups.map(group => ({
+                        Sid: group.accessPointSid,
+                        Effect: 'Allow',
+                        Principal: {AWS: group.accountIds.map(accountId => `arn:aws:iam::${accountId}:root`)},
+                        Action: group.actions,
+                        Resource: [
+                            accessPointArn,
+                            `${accessPointArn}/object/*`,
+                        ],
+                        Condition: {
+                            StringEquals: {
+                                'aws:RequestedRegion': this.region,
                             },
                         },
-                    ],
+                    })),
                 },
             });
         }
